@@ -17,7 +17,7 @@ return [
 
     'default' => 'openai',
     'default_for_images' => 'gemini',
-    'default_for_audio' => 'openai',
+    'default_for_audio' => 'eleven',
     'default_for_transcription' => 'openai',
     'default_for_embeddings' => 'openai',
     'default_for_reranking' => 'cohere',
