@@ -1,7 +1,11 @@
 import { Head } from '@inertiajs/react';
 import { useState, useRef } from 'react';
 
-export default function Welcome() {
+interface WelcomeProps {
+    csrfToken: string;
+}
+
+export default function Welcome({ csrfToken }: WelcomeProps) {
     const [isRecording, setIsRecording] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -27,7 +31,7 @@ export default function Welcome() {
             };
 
             mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+                const audioBlob = new Blob(audioChunksRef.current, { type: audioChunksRef.current[0]?.type || 'audio/webm' });
                 await processAudio(audioBlob);
 
                 // Stop all tracks
@@ -56,14 +60,11 @@ export default function Welcome() {
             const formData = new FormData();
             formData.append('audio', audioBlob, 'recording.wav');
 
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             const headers: Record<string, string> = {
                 Accept: 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
             };
-
-            if (csrfToken) {
-                headers['X-CSRF-TOKEN'] = csrfToken;
-            }
 
             const response = await fetch('/api/voice/interact', {
                 method: 'POST',
@@ -72,7 +73,8 @@ export default function Welcome() {
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(`HTTP error! status: ${response.status} - ${JSON.stringify(errorData)}`);
             }
 
             const data = await response.json();
@@ -124,9 +126,7 @@ export default function Welcome() {
 
     return (
         <>
-            <Head title="Voice Assistant">
-                <meta name="csrf-token" content="{{ csrf_token() }}" />
-            </Head>
+            <Head title="Voice Assistant" />
             <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
                 <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
                     <div className="text-center">

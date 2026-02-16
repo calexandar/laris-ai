@@ -122,7 +122,7 @@ class VoiceController extends Controller
     public function interact(Request $request)
     {
         $request->validate([
-            'audio' => 'required|file|mimes:wav,mp3,m4a,ogg|max:10240',
+            'audio' => 'required|file|mimes:wav,mp3,m4a,ogg,webm|max:10240',
             'voice' => 'sometimes|string|in:male,female,neutral',
         ]);
 
